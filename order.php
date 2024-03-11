@@ -7,25 +7,23 @@ header("Content-Type: application/json; charset=UTF-8");
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Handle POST Request (create new comment)
+// Handle POST Request (create new order)
 if ($method === 'POST') {
     // Decode JSON data from request body
     $data = json_decode(file_get_contents('php://input'), true);
 
     // Extract data from decoded JSON
-    $product_id = $data['product_id'];
     $user_id = $data['user_id'];
-    $rating = $data['rating'];
-    $image = $data['image'];
-    $text = $data['text'];
+    $products = $data['products'];
+    $quantities = $data['quantities'];
 
     // Prepare the SQL statement
-    $stmt = $conn->prepare("INSERT INTO Comments (product, user, rating, image, text) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("iiiss", $product_id, $user_id, $rating, $image, $text);
+    $stmt = $conn->prepare("INSERT INTO `Order` (user, products, quantities) VALUES (?, ?, ?)");
+    $stmt->bind_param("iii", $user_id, $products, $quantities);
 
     // Execute the statement
     if ($stmt->execute()) {
-        echo json_encode(array("message" => "Comment added successfully"));
+        echo json_encode(array("message" => "Order placed successfully"));
     } else {
         echo json_encode(array("message" => "Error: " . $stmt->error));
     }
@@ -34,10 +32,10 @@ if ($method === 'POST') {
     $stmt->close();
 }
 
-// Handle GET Request (retrieve existing comments)
+// Handle GET Request (retrieve existing orders)
 elseif ($method === 'GET') {
     // Prepare the SQL statement
-    $stmt = $conn->prepare("SELECT * FROM Comments");
+    $stmt = $conn->prepare("SELECT * FROM `Order`");
     
     // Execute the statement
     $stmt->execute();
@@ -46,39 +44,37 @@ elseif ($method === 'GET') {
     $result = $stmt->get_result();
     
     if ($result->num_rows > 0) {
-        $comments = array();
+        $orders = array();
         while($row = $result->fetch_assoc()) {
-            $comments[] = $row;
+            $orders[] = $row;
         }
-        echo json_encode($comments);
+        echo json_encode($orders);
     } else {
-        echo json_encode(array("message" => "No comments found"));
+        echo json_encode(array("message" => "No order found"));
     }
 
     // Close the statement
     $stmt->close();
 }
 
-// Handle PUT Request (update data for existing comment)
+// Handle PUT Request (update data for existing order)
 elseif ($method === 'PUT') {
     // Decode JSON data from request body
     $data = json_decode(file_get_contents("php://input"), true);
 
     // Extract data from decoded JSON
-    $comment_id = $data['comment_id'];
-    $product_id = $data['product_id'];
+    $order_id = $data['order_id'];
     $user_id = $data['user_id'];
-    $rating = $data['rating'];
-    $image = $data['image'];
-    $text = $data['text'];
+    $products = $data['products'];
+    $quantities = $data['quantities'];
 
     // Prepare the SQL statement
-    $stmt = $conn->prepare("UPDATE Comments SET product=?, user=?, rating=?, image=?, text=? WHERE comment_id=?");
-    $stmt->bind_param("iiissi", $product_id, $user_id, $rating, $image, $text, $comment_id);
+    $stmt = $conn->prepare("UPDATE `Order` SET user=?, products=?, quantities=? WHERE order_id=?");
+    $stmt->bind_param("iiii", $user_id, $products, $quantities, $order_id);
 
     // Execute the statement
     if ($stmt->execute()) {
-        echo json_encode(array("message" => "Comment updated successfully"));
+        echo json_encode(array("message" => "Order updated successfully"));
     } else {
         echo json_encode(array("message" => "Error: " . $stmt->error));
     }
@@ -87,21 +83,21 @@ elseif ($method === 'PUT') {
     $stmt->close();
 }
 
-// Handle DELETE Request (delete a comment)
+// Handle DELETE Request (delete an order)
 elseif ($method === 'DELETE') {
     // Decode JSON data from request body
     $data = json_decode(file_get_contents("php://input"), true);
 
-    // Extract comment_id from decoded JSON
-    $comment_id = $data['comment_id'];
+    // Extract order_id from decoded JSON
+    $order_id = $data['order_id'];
 
     // Prepare the SQL statement
-    $stmt = $conn->prepare("DELETE FROM Comments WHERE comment_id=?");
-    $stmt->bind_param("i", $comment_id);
+    $stmt = $conn->prepare("DELETE FROM `Order` WHERE order_id=?");
+    $stmt->bind_param("i", $order_id);
 
     // Execute the statement
     if ($stmt->execute()) {
-        echo json_encode(array("message" => "Comment deleted successfully"));
+        echo json_encode(array("message" => "Order deleted successfully"));
     } else {
         echo json_encode(array("message" => "Error: " . $stmt->error));
     }
