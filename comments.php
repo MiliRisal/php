@@ -7,25 +7,25 @@ header("Content-Type: application/json; charset=UTF-8");
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Handle POST Request (create new user)
+// Handle POST Request (create new comment)
 if ($method === 'POST') {
     // Decode JSON data from request body
     $data = json_decode(file_get_contents('php://input'), true);
 
     // Extract data from decoded JSON
-    $email = $data['email'];
-    $password = $data['password'];
-    $username = $data['username'];
-    $purchase_history = $data['purchase_history'];
-    $shipping_address = $data['shipping_address'];
+    $product_id = $data['product_id'];
+    $user_id = $data['user_id'];
+    $rating = $data['rating'];
+    $image = $data['image'];
+    $text = $data['text'];
 
     // Prepare the SQL statement
-    $stmt = $conn->prepare("INSERT INTO Users (email, password, username, purchase_history, shipping_address) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssss", $email, $password, $username, $purchase_history, $shipping_address);
+    $stmt = $conn->prepare("INSERT INTO Comments (product, user, rating, image, text) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("iiiss", $product_id, $user_id, $rating, $image, $text);
 
     // Execute the statement
     if ($stmt->execute()) {
-        echo json_encode(array("message" => "User added successfully"));
+        echo json_encode(array("message" => "Comment added successfully"));
     } else {
         echo json_encode(array("message" => "Error: " . $stmt->error));
     }
@@ -34,10 +34,10 @@ if ($method === 'POST') {
     $stmt->close();
 }
 
-// Handle GET Request (retrieve existing users)
+// Handle GET Request (retrieve existing comments)
 elseif ($method === 'GET') {
     // Prepare the SQL statement
-    $stmt = $conn->prepare("SELECT * FROM Users");
+    $stmt = $conn->prepare("SELECT * FROM Comments");
     
     // Execute the statement
     $stmt->execute();
@@ -46,11 +46,11 @@ elseif ($method === 'GET') {
     $result = $stmt->get_result();
     
     if ($result->num_rows > 0) {
-        $users = array();
+        $comments = array();
         while($row = $result->fetch_assoc()) {
-            $users[] = $row;
+            $comments[] = $row;
         }
-        echo json_encode($users);
+        echo json_encode($comments);
     } else {
         echo json_encode(array("message" => "No users found"));
     }
@@ -59,26 +59,26 @@ elseif ($method === 'GET') {
     $stmt->close();
 }
 
-// Handle PUT Request (update data for existing user)
+// Handle PUT Request (update data for existing comment)
 elseif ($method === 'PUT') {
     // Decode JSON data from request body
     $data = json_decode(file_get_contents("php://input"), true);
 
     // Extract data from decoded JSON
+    $comment_id = $data['comment_id'];
+    $product_id = $data['product_id'];
     $user_id = $data['user_id'];
-    $email = $data['email'];
-    $password = $data['password'];
-    $username = $data['username'];
-    $purchase_history = $data['purchase_history'];
-    $shipping_address = $data['shipping_address'];
+    $rating = $data['rating'];
+    $image = $data['image'];
+    $text = $data['text'];
 
     // Prepare the SQL statement
-    $stmt = $conn->prepare("UPDATE Users SET email=?, password=?, username=?, purchase_history=?, shipping_address=? WHERE user_id=?");
-    $stmt->bind_param("sssss", $email, $password, $username, $purchase_history, $shipping_address, $user_id);
+    $stmt = $conn->prepare("UPDATE Comments SET product=?, user=?, rating=?, image=?, text=? WHERE comment_id=?");
+    $stmt->bind_param("iiissi", $product_id, $user_id, $rating, $image, $text, $comment_id);
 
     // Execute the statement
     if ($stmt->execute()) {
-        echo json_encode(array("message" => "User updated successfully"));
+        echo json_encode(array("message" => "Comment updated successfully"));
     } else {
         echo json_encode(array("message" => "Error: " . $stmt->error));
     }
@@ -87,21 +87,21 @@ elseif ($method === 'PUT') {
     $stmt->close();
 }
 
-// Handle DELETE Request (delete a user)
+// Handle DELETE Request (delete a comment)
 elseif ($method === 'DELETE') {
     // Decode JSON data from request body
     $data = json_decode(file_get_contents("php://input"), true);
 
-    // Extract user_id from decoded JSON
-    $user_id = $data['user_id'];
+    // Extract comment_id from decoded JSON
+    $comment_id = $data['comment_id'];
 
     // Prepare the SQL statement
-    $stmt = $conn->prepare("DELETE FROM Users WHERE user_id=?");
-    $stmt->bind_param("i", $user_id);
+    $stmt = $conn->prepare("DELETE FROM Comments WHERE comment_id=?");
+    $stmt->bind_param("i", $comment_id);
 
     // Execute the statement
     if ($stmt->execute()) {
-        echo json_encode(array("message" => "User deleted successfully"));
+        echo json_encode(array("message" => "Comment deleted successfully"));
     } else {
         echo json_encode(array("message" => "Error: " . $stmt->error));
     }
